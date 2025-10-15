@@ -155,3 +155,10 @@ const handleCardAddSubmit = (evt) => {
 }
 
 formElementAddPlace.addEventListener('submit', handleCardAddSubmit);
+
+document.addEventListener('DOMContentLoaded', () => {
+  const modals = document.querySelectorAll('.popup');
+  modals.forEach(modal => {
+    modal.classList.add('popup_is-animated');
+  });
+});
