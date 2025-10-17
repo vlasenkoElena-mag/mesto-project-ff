@@ -1,34 +1,8 @@
 import './pages/index.css';
 import './components/modal.js'
-import { createCardElement } from './components/card.js';
-import { openModal, closeModal } from './components/modal.js';
-
-export const initialCards = [
-    {
-      name: "Архыз",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/arkhyz.jpg",
-    },
-    {
-      name: "Челябинская область",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/chelyabinsk-oblast.jpg",
-    },
-    {
-      name: "Иваново",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/ivanovo.jpg",
-    },
-    {
-      name: "Камчатка",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/kamchatka.jpg",
-    },
-    {
-      name: "Холмогорский район",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/kholmogorsky-rayon.jpg",
-    },
-    {
-      name: "Байкал",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/baikal.jpg",
-    }
-];
+import { createCardElement, handleDeleteCard, handleLikeClick } from './components/card.js';
+import { openModal, closeModal, makeEscKeydownHandler, makeOverlayClickHandler } from './components/modal.js';
+import { initialCards } from './components/cards.js';
 
 const placesWrap = document.querySelector(".places__list");
 const popupEditButton = document.querySelector('.profile__edit-button');
@@ -44,10 +18,7 @@ const addFormPlaceNameInput = document.querySelector('.popup__input_type_card-na
 const addFormPlaceUrlInput = document.querySelector('.popup__input_type_url');
 const formElementEditProfile = document.querySelector('.popup__form[name="edit-profile"]');
 const formElementAddPlace = document.querySelector('.popup__form[name="new-place"]');
-
-const handleDeleteCard = (evt) => {
-  evt.target.closest(".card").remove();
-}
+const addFormSubmitButton = formElementAddPlace.querySelector('.popup__button');
 
 const handleImageClick = (evt) => {
   document.addEventListener('keydown', handleEscImage);
@@ -59,54 +30,19 @@ const handleImageClick = (evt) => {
   popupCaptionElement.textContent = evt.target.alt;
 }
 
-const handleLikeClick = (evt) => {
-  evt.target.classList.contains('card__like-button_is-active') ? evt.target.classList.remove('card__like-button_is-active') : evt.target.classList.add('card__like-button_is-active');
-}
+const handleEscEdit = makeEscKeydownHandler(popupEditProfile);
 
-initialCards.forEach((data) => {
-  placesWrap.append(createCardElement(data, {onDelete: handleDeleteCard, onImageClick: handleImageClick, onLikeClick: handleLikeClick}));
-});
+const handleEscNewCard = makeEscKeydownHandler(popupNewCard);
 
-const handleEscEdit = (evt) => {
-  if (evt.key === 'Escape') {
-    closeModal(popupEditProfile);
-    document.removeEventListener('keydown', handleEscEdit);
-  }
-}
+const handleEscImage = makeEscKeydownHandler(popupImage);
 
-const handleEscNewCard = (evt) => {
-  if (evt.key === 'Escape') {
-    closeModal(popupNewCard);
-    document.removeEventListener('keydown', handleEscNewCard);
-  }
-}
+const handleOverlayClick = makeOverlayClickHandler(
+  handleEscEdit,
+  handleEscNewCard,
+  handleEscImage
+);
 
-const handleEscImage = (evt) => {
-  if (evt.key === 'Escape') {
-    closeModal(popupImage);
-    document.removeEventListener('keydown', handleEscImage);
-  }
-}
-
-const handleCloseClick = (evt) => {
-
-  if (evt.target.classList.contains('popup_is-opened') || evt.target.classList.contains('popup__close')) {
-    const modal = evt.target.closest('.popup') || evt.target;
-    
-    if (modal === popupEditProfile) {
-      closeModal(popupEditProfile);
-      document.removeEventListener('keydown', handleEscEdit);
-    } else if (modal === popupNewCard) {
-      closeModal(popupNewCard);
-      document.removeEventListener('keydown', handleEscNewCard);
-    } else if (modal === popupImage) {
-      closeModal(popupImage);
-      document.removeEventListener('keydown', handleEscImage);
-    }
-  }
-}
-
-document.addEventListener('click', handleCloseClick);
+document.addEventListener('click', handleOverlayClick);
 
 popupEditButton.addEventListener('click', () => {
   document.addEventListener('keydown', handleEscEdit);
@@ -131,10 +67,9 @@ const handleFormEditProfileSubmit = (evt) => {
 formElementEditProfile.addEventListener('submit', handleFormEditProfileSubmit); 
 
 formElementAddPlace.addEventListener('input', () => {
-  const submitButton = formElementAddPlace.querySelector('.popup__button');
   const isValid = formElementAddPlace.checkValidity();
-  submitButton.disabled = !isValid;
-  submitButton.classList.toggle('popup__button_disabled', !isValid);
+  addFormSubmitButton.disabled = !isValid;
+  addFormSubmitButton.classList.toggle('popup__button_disabled', !isValid);
 });
 
 const handleCardAddSubmit = (evt) => {
@@ -149,16 +84,20 @@ const handleCardAddSubmit = (evt) => {
       onImageClick: handleImageClick,
       onLikeClick: handleLikeClick
     }));
-  document.removeEventListener('keydown', handleEscEdit);
-  formElementAddPlace.reset();
-  closeModal(popupNewCard);
-}
-
-formElementAddPlace.addEventListener('submit', handleCardAddSubmit);
-
-document.addEventListener('DOMContentLoaded', () => {
-  const modals = document.querySelectorAll('.popup');
-  modals.forEach(modal => {
+    document.removeEventListener('keydown', handleEscEdit);
+    formElementAddPlace.reset();
+    closeModal(popupNewCard);
+  }
+  
+  formElementAddPlace.addEventListener('submit', handleCardAddSubmit);
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const modals = document.querySelectorAll('.popup');
+    modals.forEach(modal => {
     modal.classList.add('popup_is-animated');
   });
 });
+
+for (const data of initialCards) {
+ placesWrap.append(createCardElement(data, {onDelete: handleDeleteCard, onImageClick: handleImageClick, onLikeClick: handleLikeClick}));
+};
