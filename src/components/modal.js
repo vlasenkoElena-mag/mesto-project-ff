@@ -1,33 +1,31 @@
 const openModal = (modal) => {
     modal.classList.add('popup_is-opened');
+    document.addEventListener('keydown', handleEscKeydown);
 };
 
 const closeModal = (modal) => {
     modal.classList.remove('popup_is-opened');
+    document.removeEventListener('keydown', handleEscKeydown);
 };
 
-const makeEscKeydownHandler = (popupElement) => {
-    const handleEscKeydown = (evt) => {
-      if (evt.key === 'Escape') {
-        closeModal(popupElement);
-        document.removeEventListener('keydown', handleEscKeydown);
-      }
+const handleEscKeydown = (evt) => {
+    if (evt.key === 'Escape') {
+        const modal = document.querySelector('.popup_is-opened');
+            if(modal) {
+                closeModal(modal)
+            }
     }
-  
-    return handleEscKeydown;
 };
 
-const makeOverlayClickHandler = (...escHandlers) => (evt) => {
+const handleCloseModalClick = (evt) => {
     if (evt.target.classList.contains('popup_is-opened') || evt.target.classList.contains('popup__close')) {
         const modal = evt.target.closest('.popup') || evt.target;
         closeModal(modal);
-        escHandlers.forEach(handler => document.removeEventListener('keydown', handler));
     }
 };
 
 export {
     openModal,
     closeModal,
-    makeEscKeydownHandler,
-    makeOverlayClickHandler
+    handleCloseModalClick
 };

@@ -1,7 +1,7 @@
 import './pages/index.css';
 import './components/modal.js'
 import { createCardElement, handleDeleteCard, handleLikeClick } from './components/card.js';
-import { openModal, closeModal, makeEscKeydownHandler, makeOverlayClickHandler } from './components/modal.js';
+import { openModal, closeModal, handleCloseModalClick } from './components/modal.js';
 import { initialCards } from './components/cards.js';
 
 const placesWrap = document.querySelector(".places__list");
@@ -21,7 +21,6 @@ const formElementAddPlace = document.querySelector('.popup__form[name="new-place
 const addFormSubmitButton = formElementAddPlace.querySelector('.popup__button');
 
 const handleImageClick = (evt) => {
-  document.addEventListener('keydown', handleEscImage);
   openModal(popupImage);
   const popupImageElement = document.querySelector('.popup__image');
   const popupCaptionElement = document.querySelector('.popup__caption');
@@ -30,29 +29,17 @@ const handleImageClick = (evt) => {
   popupCaptionElement.textContent = evt.target.alt;
 }
 
-const handleEscEdit = makeEscKeydownHandler(popupEditProfile);
-
-const handleEscNewCard = makeEscKeydownHandler(popupNewCard);
-
-const handleEscImage = makeEscKeydownHandler(popupImage);
-
-const handleOverlayClick = makeOverlayClickHandler(
-  handleEscEdit,
-  handleEscNewCard,
-  handleEscImage
-);
-
-document.addEventListener('click', handleOverlayClick);
+popupEditProfile.addEventListener('click', handleCloseModalClick);
+popupImage.addEventListener('click', handleCloseModalClick);
+popupNewCard.addEventListener('click', handleCloseModalClick);
 
 popupEditButton.addEventListener('click', () => {
-  document.addEventListener('keydown', handleEscEdit);
   openModal(popupEditProfile);
   editFormNameInput.value = profileName.textContent;
   editFormJobInput.value = profileJob.textContent;
 });
 
 profileAddButton.addEventListener('click', () => {
-  document.addEventListener('keydown', handleEscNewCard);
   openModal(popupNewCard);
 });
 
@@ -60,7 +47,6 @@ const handleFormEditProfileSubmit = (evt) => {
   evt.preventDefault();
   profileName.textContent = editFormNameInput.value;
   profileJob.textContent = editFormJobInput.value;
-  document.removeEventListener('keydown', handleEscEdit);
   closeModal(popupEditProfile);
 }
 
@@ -84,7 +70,6 @@ const handleCardAddSubmit = (evt) => {
       onImageClick: handleImageClick,
       onLikeClick: handleLikeClick
     }));
-    document.removeEventListener('keydown', handleEscEdit);
     formElementAddPlace.reset();
     closeModal(popupNewCard);
   }
