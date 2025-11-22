@@ -2,6 +2,7 @@ import './pages/index.css';
 import { openModal, closeModal, handleCloseModalClick } from './components/modal.js';
 import { createCardElement, handleDeleteCard, handleLikeClick } from './components/card.js';
 import { initialCards } from './components/cards.js';
+import { createValidationUtils } from './validation.js';
 
 const placesWrap = document.querySelector('.places__list');
 const popupEditButton = document.querySelector('.profile__edit-button');
@@ -18,6 +19,16 @@ const addFormPlaceUrlInput = document.querySelector('.popup__input_type_url');
 const formElementEditProfile = document.querySelector('.popup__form[name="edit-profile"]');
 const formElementAddPlace = document.querySelector('.popup__form[name="new-place"]');
 const addFormSubmitButton = formElementAddPlace.querySelector('.popup__button');
+const profileFormSubmitButton = formElementEditProfile.querySelector('.popup__button');
+
+const { clearValidation, enableValidation, toggleButtonState, checkInputValidity } = createValidationUtils({
+    formSelector: '.popup__form',
+    inputSelector: '.popup__input',
+    submitButtonSelector: '.popup__button',
+    inactiveButtonClass: 'popup__button_disabled',
+    inputErrorClass: 'popup__input_type_error',
+    errorClass: 'popup__error_visible',
+});
 
 const handleImageClick = evt => {
     openModal(popupImage);
@@ -28,18 +39,26 @@ const handleImageClick = evt => {
     popupCaptionElement.textContent = evt.target.alt;
 };
 
-popupEditProfile.addEventListener('click', handleCloseModalClick);
-popupImage.addEventListener('click', handleCloseModalClick);
-popupNewCard.addEventListener('click', handleCloseModalClick);
+popupEditProfile.addEventListener('click', evt => {
+    handleCloseModalClick(evt, () => clearValidation(formElementEditProfile));
+});
+
+popupImage.addEventListener('click', evt => handleCloseModalClick(evt, () => {}));
+popupNewCard.addEventListener('click', evt => {
+    handleCloseModalClick(evt, () => clearValidation(formElementAddPlace));
+});
 
 popupEditButton.addEventListener('click', () => {
     openModal(popupEditProfile);
     editFormNameInput.value = profileName.textContent;
     editFormJobInput.value = profileJob.textContent;
+    toggleButtonState([editFormNameInput, editFormJobInput], profileFormSubmitButton);
 });
 
 profileAddButton.addEventListener('click', () => {
-    openModal(popupNewCard);
+    checkInputValidity(addFormPlaceNameInput);
+    checkInputValidity(addFormPlaceUrlInput);
+    openModal(popupNewCard, () => clearValidation(popupNewCard));
 });
 
 const handleFormEditProfileSubmit = evt => {
@@ -71,6 +90,7 @@ const handleCardAddSubmit = evt => {
         }));
     formElementAddPlace.reset();
     closeModal(popupNewCard);
+    clearValidation(formElementAddPlace);
 };
 
 formElementAddPlace.addEventListener('submit', handleCardAddSubmit);
@@ -85,3 +105,5 @@ document.addEventListener('DOMContentLoaded', () => {
 for (const data of initialCards) {
     placesWrap.append(createCardElement(data, { onDelete: handleDeleteCard, onImageClick: handleImageClick, onLikeClick: handleLikeClick }));
 };
+
+enableValidation();

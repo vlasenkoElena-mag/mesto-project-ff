@@ -17,10 +17,11 @@ const handleEscKeydown = evt => {
     }
 };
 
-const handleCloseModalClick = evt => {
+const handleCloseModalClick = (evt, onClose) => {
     if (evt.target.classList.contains('popup_is-opened') || evt.target.classList.contains('popup__close')) {
         const modal = evt.target.closest('.popup') || evt.target;
         closeModal(modal);
+        onClose();
     }
 };
 
