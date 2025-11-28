@@ -16,7 +16,7 @@ const popupConfirmCardDeleting = document.querySelector('.popup_type_delete_card
 const profileName = document.querySelector('.profile__title');
 const profileJob = document.querySelector('.profile__description');
 const editFormNameInput = document.querySelector('.popup__input_type_name');
-const profileImg = document.querySelector('.profile__image');
+const profileAvatar = document.querySelector('.profile__image');
 const editFormJobInput = document.querySelector('.popup__input_type_description');
 const addFormPlaceNameInput = document.querySelector('.popup__input_type_card-name');
 const formElementEditProfile = document.querySelector('.popup__form[name="edit-profile"]');
@@ -63,29 +63,6 @@ const handleDeleteCardButton = cardId => {
     openModal(deleteCardModal);
 };
 
-Promise.all([getUser(), getCards()])
-    .then(([user, cards]) => {
-        profileName.textContent = user.name;
-        profileJob.textContent = user.about;
-        profileImg.style.backgroundImage = `url(${user.avatar})`;
-
-        cards.forEach(data => {
-            placesWrap.append(createCardElement(data, user._id, {
-                onDelete: handleDeleteCardButton,
-                onImageClick: handleImageClick,
-            }));
-        });
-    });
-
-const { clearValidation, enableValidation, toggleButtonState } = createValidationUtils({
-    formSelector: '.popup__form',
-    inputSelector: '.popup__input',
-    submitButtonSelector: '.popup__button',
-    inactiveButtonClass: 'popup__button_disabled',
-    inputErrorClass: 'popup__input_type_error',
-    errorClass: 'popup__error_visible',
-});
-
 const handleImageClick = evt => {
     openModal(popupImage);
     const popupImageElement = document.querySelector('.popup__image');
@@ -99,7 +76,7 @@ const handleAvatarClick = () => {
     openModal(popupEditAvatar);
 };
 
-profileImg.addEventListener('click', handleAvatarClick);
+profileAvatar.addEventListener('click', handleAvatarClick);
 
 popupEditAvatar.addEventListener('submit', evt => {
     evt.preventDefault();
@@ -110,7 +87,7 @@ popupEditAvatar.addEventListener('submit', evt => {
 
     editAvatar(url)
         .then(user => {
-            profileImg.style.backgroundImage = `url(${user.avatar})`;
+            profileAvatar.style.backgroundImage = `url(${user.avatar})`;
         })
         .then(() => {
             closeModal(popupEditAvatar);
@@ -217,6 +194,29 @@ document.addEventListener('DOMContentLoaded', () => {
     modals.forEach(modal => {
         modal.classList.add('popup_is-animated');
     });
+});
+
+Promise.all([getUser(), getCards()])
+    .then(([user, cards]) => {
+        profileName.textContent = user.name;
+        profileJob.textContent = user.about;
+        profileAvatar.style.backgroundImage = `url(${user.avatar})`;
+
+        cards.forEach(data => {
+            placesWrap.append(createCardElement(data, user._id, {
+                onDelete: handleDeleteCardButton,
+                onImageClick: handleImageClick,
+            }));
+        });
+    });
+
+const { clearValidation, enableValidation, toggleButtonState } = createValidationUtils({
+    formSelector: '.popup__form',
+    inputSelector: '.popup__input',
+    submitButtonSelector: '.popup__button',
+    inactiveButtonClass: 'popup__button_disabled',
+    inputErrorClass: 'popup__input_type_error',
+    errorClass: 'popup__error_visible',
 });
 
 enableValidation();
