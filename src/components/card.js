@@ -1,34 +1,53 @@
-const cardTemplate = document.querySelector('#card-template').content.querySelector('.places__item');
+import { dislikeCard, likeCard } from '../api';
 
-const createCardElement = (data, { onDelete, onImageClick, onLikeClick }) => {
+const cardTemplate = document.querySelector('#card-template').content.querySelector('.places__item');
+const deleteCardModal = document.querySelector('.popup_type_delete_card');
+
+const handleLikeClick = (evt, cardId) => {
+    const cardElement = evt.target.closest('.card');
+    const cardLikeCount = cardElement.querySelector('.card__like-count');
+
+    if (!evt.target.classList.contains('card__like-button_is-active')) {
+        likeCard(cardId).then(card => {
+            cardLikeCount.textContent = card.likes.length;
+        });
+        evt.target.classList.add('card__like-button_is-active');
+    }
+    else {
+        dislikeCard(cardId).then(card => {
+            cardLikeCount.textContent = card.likes.length;
+        });
+        evt.target.classList.remove('card__like-button_is-active');
+    }
+};
+
+const createCardElement = (card, userId, { onDelete, onImageClick }) => {
     const cardElement = cardTemplate.cloneNode(true);
+    cardElement.setAttribute('data-card-id', card._id);
     const deleteButton = cardElement.querySelector('.card__delete-button');
     const likeButton = cardElement.querySelector('.card__like-button');
     const cardImage = cardElement.querySelector('.card__image');
-    cardImage.src = data.link;
-    cardImage.alt = data.name;
+    const cardLikeCount = cardElement.querySelector('.card__like-count');
 
-    cardElement.querySelector('.card__title').textContent = data.name;
+    if (card.likes.some(like => like._id === userId)) {
+        likeButton.classList.add('card__like-button_is-active');
+    }
+    else {
+        likeButton.classList.remove('card__like-button_is-active');
+    }
 
-    deleteButton.addEventListener('click', onDelete);
+    card.owner._id !== userId ? deleteButton.hidden = true : '';
+    cardImage.src = card.link;
+    cardImage.alt = card.name;
+    cardLikeCount.textContent = card.likes.length;
+    cardElement.querySelector('.card__title').textContent = card.name;
+    deleteButton.addEventListener('click', () => onDelete(card._id));
     cardImage.addEventListener('click', onImageClick);
-    likeButton.addEventListener('click', onLikeClick);
+    likeButton.addEventListener('click', evt => handleLikeClick(evt, card._id));
 
     return cardElement;
 };
 
-const handleDeleteCard = evt => {
-    evt.target.closest('.card').remove();
-};
-
-const handleLikeClick = evt => {
-    evt.target.classList.contains('card__like-button_is-active')
-        ? evt.target.classList.remove('card__like-button_is-active')
-        : evt.target.classList.add('card__like-button_is-active');
-};
-
 export {
     createCardElement,
-    handleDeleteCard,
-    handleLikeClick,
 };

@@ -6,6 +6,9 @@ const openModal = modal => {
 const closeModal = modal => {
     modal.classList.remove('popup_is-opened');
     document.removeEventListener('keydown', handleEscKeydown);
+    if (modal.querySelector('.popup__form')) {
+        modal.querySelector('.popup__form')?.name !== 'edit-profile' && modal.querySelector('.popup__form').reset();
+    }
 };
 
 const handleEscKeydown = evt => {
