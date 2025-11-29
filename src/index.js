@@ -10,6 +10,12 @@ const { addCard, getCards, getUser, editUser, deleteCard, editAvatar, likeCard, 
     authToken: '378d653b-1a2b-486f-80ad-74276afb7abc',
 });
 
+const forms = new Map(Array.from(document.forms).map(it => [it.name, it]));
+
+const formElementEditProfile = forms.get('edit-profile');
+const formElementAddPlace = forms.get('new-place');
+const formElementEditAvatar = forms.get('edit-avatar');
+
 const placesWrap = document.querySelector('.places__list');
 const popupEditButton = document.querySelector('.profile__edit-button');
 const addCardButton = document.querySelector('.profile__add-button');
@@ -24,27 +30,34 @@ const editFormNameInput = document.querySelector('.popup__input_type_name');
 const profileAvatar = document.querySelector('.profile__image');
 const editFormJobInput = document.querySelector('.popup__input_type_description');
 const addFormPlaceNameInput = document.querySelector('.popup__input_type_card-name');
-const formElementEditProfile = document.querySelector('.popup__form[name="edit-profile"]');
-const formElementAddPlace = document.querySelector('.popup__form[name="new-place"]');
 const addFormPlaceUrlInput = formElementAddPlace.querySelector('.popup__input_type_url');
-const formElementEditAvatar = document.querySelector('.popup__form[name="edit-avatar"]');
 const editAvatarFormUrlInput = formElementEditAvatar.querySelector('.popup__input_type_url');
-const addFormSubmitButton = formElementAddPlace.querySelector('.popup__button');
 const profileFormSubmitButton = formElementEditProfile.querySelector('.popup__button');
 const deleteCardModal = document.querySelector('.popup_type_delete_card');
 const deleteConfirmCardButton = deleteCardModal.querySelector('.popup__button');
+const popupImageElement = document.querySelector('.popup__image');
+const popupCaptionElement = document.querySelector('.popup__caption');
 
 let deletedCardId;
+
+const setButtonProcessText = (buttonElement, text) => {
+    const originalText = buttonElement.textContent;
+    buttonElement.textContent = text;
+
+    return () => {
+        buttonElement.textContent = originalText;
+    };
+};
 
 deleteConfirmCardButton.addEventListener('click', evt => {
     evt.preventDefault();
     const submitButton = deleteCardModal.querySelector('.popup__button');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = BUTTON_STATE.delete;
+    const resetButtonText = setButtonProcessText(submitButton, BUTTON_STATE.delete);
 
     if (!deletedCardId) {
         return;
     }
+
     deleteCard(deletedCardId)
         .then(() => {
             const cardToRemove = document.querySelector(`[data-card-id="${deletedCardId}"]`);
@@ -58,7 +71,7 @@ deleteConfirmCardButton.addEventListener('click', evt => {
         })
         .finally(() => {
             deletedCardId = null;
-            submitButton.textContent = originalText;
+            resetButtonText();
         });
 });
 
@@ -73,8 +86,6 @@ const handleDeleteCardButton = cardId => {
 
 const handleImageClick = evt => {
     openModal(popupImage);
-    const popupImageElement = document.querySelector('.popup__image');
-    const popupCaptionElement = document.querySelector('.popup__caption');
     popupImageElement.src = evt.target.src;
     popupImageElement.alt = evt.target.alt;
     popupCaptionElement.textContent = evt.target.alt;
@@ -90,43 +101,18 @@ popupEditAvatar.addEventListener('submit', evt => {
     evt.preventDefault();
     const url = editAvatarFormUrlInput.value.trim();
     const submitButton = evt.target.querySelector('.popup__button');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = BUTTON_STATE.save;
+    const resetButtonText = setButtonProcessText(submitButton, BUTTON_STATE.save);
 
     editAvatar(url)
         .then(user => {
             profileAvatar.style.backgroundImage = `url(${user.avatar})`;
-        })
-        .then(() => {
             closeModal(popupEditAvatar);
-            clearValidation(formElementEditAvatar);
         })
-
         .catch(error => {
             console.error('Ошибка обновления аватара:', error);
         })
         .finally(() => {
-            submitButton.textContent = originalText;
-        });
-});
-
-popupEditProfile.addEventListener('submit', evt => {
-    evt.preventDefault();
-    const submitButton = evt.target.querySelector('.popup__button');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = BUTTON_STATE.save;
-    const name = editFormNameInput.value;
-    const about = editFormJobInput.value;
-
-    editUser(name, about)
-        .then(() => {
-            handleCloseModalClick(evt, () => clearValidation(formElementEditProfile));
-        })
-        .catch(error => {
-            console.error('Ошибка обновления профиля:', error);
-        })
-        .finally(() => {
-            submitButton.textContent = originalText;
+            resetButtonText();
         });
 });
 
@@ -157,26 +143,33 @@ addCardButton.addEventListener('click', () => {
 
 const handleFormEditProfileSubmit = evt => {
     evt.preventDefault();
-    profileName.textContent = editFormNameInput.value;
-    profileJob.textContent = editFormJobInput.value;
-    closeModal(popupEditProfile);
+
+    const submitButton = evt.target.querySelector('.popup__button');
+    const resetButtonText = setButtonProcessText(submitButton, BUTTON_STATE.save);
+
+    editUser(editFormNameInput.value, editFormJobInput.value)
+        .then(() => {
+            handleCloseModalClick(evt, () => clearValidation(formElementEditProfile));
+            profileName.textContent = editFormNameInput.value;
+            profileJob.textContent = editFormJobInput.value;
+            closeModal(popupEditProfile);
+        })
+        .catch(error => {
+            console.error('Ошибка обновления профиля:', error);
+        })
+        .finally(() => {
+            resetButtonText();
+        });
 };
 
 formElementEditProfile.addEventListener('submit', handleFormEditProfileSubmit);
-
-formElementAddPlace.addEventListener('input', () => {
-    const isValid = formElementAddPlace.checkValidity();
-    addFormSubmitButton.disabled = !isValid;
-    addFormSubmitButton.classList.toggle('popup__button_disabled', !isValid);
-});
 
 const handleCardLike = makeLikeHandler({ dislikeCard, likeCard });
 
 const handleCardAddSubmit = evt => {
     evt.preventDefault();
     const submitButton = evt.target.querySelector('.popup__button');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = BUTTON_STATE.create;
+    const resetButtonText = setButtonProcessText(submitButton, BUTTON_STATE.create);
     addCard(addFormPlaceNameInput.value, addFormPlaceUrlInput.value)
 
         .then(cardData => {
@@ -188,13 +181,12 @@ const handleCardAddSubmit = evt => {
             placesWrap.prepend(newCard);
             formElementAddPlace.reset();
             closeModal(popupNewCard);
-            clearValidation(formElementAddPlace);
         })
         .catch(error => {
             console.error('Ошибка добавления карточки:', error);
         })
         .finally(() => {
-            submitButton.textContent = originalText;
+            resetButtonText();
         });
 };
 
