@@ -1,9 +1,14 @@
 import './pages/index.css';
 import { openModal, closeModal, handleCloseModalClick } from './components/modal.js';
-import { createCardElement } from './components/card.js';
+import { createCardElement, makeLikeHandler } from './components/card.js';
 import { createValidationUtils } from './validation.js';
-import { addCard, getCards, getUser, editUser, deleteCard, editAvatar } from './api.js';
+import { makeApi } from './api.js';
 import { BUTTON_STATE } from './const.js';
+
+const { addCard, getCards, getUser, editUser, deleteCard, editAvatar, likeCard, dislikeCard } = makeApi({
+    baseUrl: 'https://nomoreparties.co/v1/higher-front-back-dev',
+    authToken: '378d653b-1a2b-486f-80ad-74276afb7abc',
+});
 
 const placesWrap = document.querySelector('.places__list');
 const popupEditButton = document.querySelector('.profile__edit-button');
@@ -47,6 +52,9 @@ deleteConfirmCardButton.addEventListener('click', evt => {
                 cardToRemove.remove();
             }
             closeModal(deleteCardModal);
+        })
+        .catch(error => {
+            console.error('Ошибка удаления карточки:', error);
         })
         .finally(() => {
             deletedCardId = null;
@@ -162,6 +170,8 @@ formElementAddPlace.addEventListener('input', () => {
     addFormSubmitButton.classList.toggle('popup__button_disabled', !isValid);
 });
 
+const handleCardLike = makeLikeHandler({ dislikeCard, likeCard });
+
 const handleCardAddSubmit = evt => {
     evt.preventDefault();
     const submitButton = evt.target.querySelector('.popup__button');
@@ -173,6 +183,7 @@ const handleCardAddSubmit = evt => {
             const newCard = createCardElement(cardData, cardData.owner._id, {
                 onDelete: handleDeleteCardButton,
                 onImageClick: handleImageClick,
+                onLikeClick: handleCardLike,
             });
             placesWrap.prepend(newCard);
             formElementAddPlace.reset();
@@ -206,8 +217,12 @@ Promise.all([getUser(), getCards()])
             placesWrap.append(createCardElement(data, user._id, {
                 onDelete: handleDeleteCardButton,
                 onImageClick: handleImageClick,
+                onLikeClick: handleCardLike,
             }));
         });
+    })
+    .catch(error => {
+        console.error('Ошибка загрузки данных:', error);
     });
 
 const { clearValidation, enableValidation, toggleButtonState } = createValidationUtils({
