@@ -6,8 +6,6 @@ const openModal = modal => {
 const closeModal = modal => {
     modal.classList.remove('popup_is-opened');
     document.removeEventListener('keydown', handleEscKeydown);
-    const form = modal.querySelector('.popup__form');
-    form?.reset();
 };
 
 const handleEscKeydown = evt => {
@@ -19,11 +17,10 @@ const handleEscKeydown = evt => {
     }
 };
 
-const handleCloseModalClick = (evt, onClose) => {
+const handleCloseModalClick = evt => {
     if (evt.target.classList.contains('popup_is-opened') || evt.target.classList.contains('popup__close')) {
         const modal = evt.target.closest('.popup') || evt.target;
         closeModal(modal);
-        onClose();
     }
 };
 

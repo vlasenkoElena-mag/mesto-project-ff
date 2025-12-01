@@ -76,7 +76,7 @@ deleteConfirmCardButton.addEventListener('click', evt => {
 });
 
 popupConfirmCardDeleting.addEventListener('click', evt => {
-    handleCloseModalClick(evt, () => {});
+    handleCloseModalClick(evt);
 });
 
 const handleDeleteCardButton = cardId => {
@@ -93,6 +93,8 @@ const handleImageClick = evt => {
 
 const handleAvatarClick = () => {
     openModal(popupEditAvatar);
+    formElementEditAvatar.reset();
+    clearValidation(formElementEditAvatar);
 };
 
 profileAvatar.addEventListener('click', handleAvatarClick);
@@ -116,29 +118,32 @@ popupEditAvatar.addEventListener('submit', evt => {
         });
 });
 
-popupImage.addEventListener('click', evt => handleCloseModalClick(evt, () => {}));
+popupImage.addEventListener('click', evt => handleCloseModalClick(evt));
 
 popupNewCard.addEventListener('click', evt => {
-    handleCloseModalClick(evt, () => clearValidation(formElementAddPlace));
+    handleCloseModalClick(evt);
 });
 
 popupEditButton.addEventListener('click', () => {
     openModal(popupEditProfile);
+    clearValidation(formElementEditProfile);
     editFormNameInput.value = profileName.textContent;
     editFormJobInput.value = profileJob.textContent;
     toggleButtonState([editFormNameInput, editFormJobInput], profileFormSubmitButton);
 });
 
 popupEditAvatar.addEventListener('click', evt => {
-    handleCloseModalClick(evt, () => clearValidation(formElementEditAvatar));
+    handleCloseModalClick(evt);
 });
 
 popupEditProfile.addEventListener('click', evt => {
-    handleCloseModalClick(evt, () => clearValidation(formElementEditProfile));
+    handleCloseModalClick(evt);
 });
 
 addCardButton.addEventListener('click', () => {
     openModal(popupNewCard);
+    formElementAddPlace.reset();
+    clearValidation(formElementAddPlace);
 });
 
 const handleFormEditProfileSubmit = evt => {
@@ -149,7 +154,6 @@ const handleFormEditProfileSubmit = evt => {
 
     editUser(editFormNameInput.value, editFormJobInput.value)
         .then(() => {
-            handleCloseModalClick(evt, () => clearValidation(formElementEditProfile));
             profileName.textContent = editFormNameInput.value;
             profileJob.textContent = editFormJobInput.value;
             closeModal(popupEditProfile);
